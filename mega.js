@@ -2,7 +2,7 @@ const { Storage } = require("megajs");
 
 const auth = {
     email: 'jakejasons580@gmail.com',
-    password: 'Septorch111$',
+    password: 'Septorch111$$',
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246'
 };
 
