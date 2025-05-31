@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Septorch Pair Page</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Roboto&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
   <style>
     * {
       box-sizing: border-box;
@@ -39,25 +40,31 @@
     .content {
       position: relative;
       z-index: 1;
-      text-align: center;
+      max-width: 90%;
       padding: 20px;
+    }
+
+    .title {
+      color: #00ffc8;
+      font-size: 1.4rem;
+      letter-spacing: 1px;
+      opacity: 0.9;
+      margin-bottom: 10px;
+      animation: fadeInTitle 2s ease forwards;
+    }
+
+    @keyframes fadeInTitle {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     h1 {
       color: #00ffc8;
-      font-size: 2.8rem;
+      font-size: 2.6rem;
       margin-bottom: 10px;
       text-transform: uppercase;
       letter-spacing: 3px;
       animation: glow 2s ease-in-out infinite alternate;
-    }
-
-    h2 {
-      color: #ffffff;
-      font-size: 1.4rem;
-      margin-bottom: 40px;
-      letter-spacing: 2px;
-      opacity: 0.9;
     }
 
     @keyframes glow {
@@ -69,15 +76,23 @@
       }
     }
 
+    h2 {
+      color: #ffffff;
+      font-size: 1.3rem;
+      margin-bottom: 40px;
+      letter-spacing: 2px;
+      opacity: 0.9;
+    }
+
     .container {
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 25px;
-      animation: fadeIn 2s ease forwards;
+      animation: fadeInButtons 2s ease forwards;
     }
 
-    @keyframes fadeIn {
+    @keyframes fadeInButtons {
       from {
         transform: translateY(30px);
         opacity: 0;
@@ -132,6 +147,28 @@
       box-shadow: 0 0 10px #00ffc8;
     }
 
+    .social-icons {
+      margin-top: 30px;
+      display: flex;
+      gap: 20px;
+      animation: floatFooter 3s ease-in-out infinite alternate;
+    }
+
+    .social-icon {
+      display: inline-block;
+      color: #00ffc8;
+      font-size: 1.8rem;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      filter: drop-shadow(0 0 5px #00ffc8);
+    }
+
+    .social-icon:hover {
+      transform: scale(1.2);
+      color: #ffffff;
+      filter: drop-shadow(0 0 10px #00ffe5);
+    }
+
     footer {
       margin-top: auto;
       margin-bottom: 20px;
@@ -149,6 +186,10 @@
     }
 
     @media (max-width: 600px) {
+      .title {
+        font-size: 1.1rem;
+      }
+
       h1 {
         font-size: 2.2rem;
       }
@@ -164,6 +205,14 @@
         padding: 14px 20px;
       }
 
+      .social-icons {
+        gap: 15px;
+      }
+
+      .social-icon {
+        font-size: 1.5rem;
+      }
+
       footer {
         font-size: 0.85rem;
       }
@@ -175,13 +224,23 @@
   <div class="overlay"></div>
 
   <div class="content">
-    <h1>Welcome To Septorch</h1>
+    <div class="title">Systems for Emerging Platforms, Technology, Operations, Research, Computing & Hardware</div>
+    <h1>Septorch</h1>
     <h2>Pair Page – Choose Your Action Below</h2>
 
     <div class="container">
       <button onclick="window.open('/qr', '_self')" class="btn">QR Code</button>
       <button onclick="window.open('/pair', '_self')" class="btn">Pair Code</button>
       <button onclick="window.open('https://whatsapp.com/channel/0029Vb1ydGk8qIzkvps0nZ04',  '_blank')" class="btn">WhatsApp</button>
+    </div>
+
+    <div class="social-icons">
+      <a href="https://instagram.com/septorch29"  target="_blank" class="social-icon">
+        <i class="fab fa-instagram"></i>
+      </a>
+      <a href="https://tiktok.com/@septorch"  target="_blank" class="social-icon">
+        <i class="fab fa-tiktok"></i>
+      </a>
     </div>
 
     <footer>
