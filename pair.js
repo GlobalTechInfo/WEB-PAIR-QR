@@ -4,13 +4,11 @@ const { exec } = require("child_process");
 let router = express.Router();
 const pino = require("pino");
 const { Boom } = require("@hapi/boom");
-
-// 🟢 Your custom message with SEPTORCH branding
 const MESSAGE = process.env.MESSAGE || `
 *SESSION GENERATED SUCCESSFULY* ✅
 
-*🌟 Join the official channel for more courage, updates, and support!* 🌟
-https://whatsapp.com/channel/0029Vb1ydGk8qIzkvps0nZ04  
+* Join the official channel for more courage, updates, and support!* 
+https://whatsapp.com/channel/0029Vb1ydGk8qIzkvps0nZ04
 
 *Ask me any question Here* 
 
@@ -22,7 +20,7 @@ TikTok: tiktok.com/@septorch
 
 
 I will answer your question on the channel 
-https://whatsapp.com/channel/0029Vb1ydGk8qIzkvps0nZ04  
+https://whatsapp.com/channel/0029Vb1ydGk8qIzkvps0nZ04
 
 
 *SEPTORCH--WHATTSAPP-BOT*
@@ -38,7 +36,7 @@ const {
     DisconnectReason
 } = require("@whiskeysockets/baileys");
 
-// Clear auth folder on startup
+// Ensure the directory is empty when the app starts
 if (fs.existsSync('./auth_info_baileys')) {
     fs.emptyDirSync(__dirname + '/auth_info_baileys');
 }
@@ -56,8 +54,7 @@ router.get('/', async (req, res) => {
                 },
                 printQRInTerminal: false,
                 logger: pino({ level: "fatal" }).child({ level: "fatal" }),
-                // 🔥 CUSTOM DEVICE NAME FOR WHATSAPP PAIRING SCREEN
-                browser: ["SEPTORCH", "Safari", "Mac OS X 10_15_7"], // Shows as "SEPTORCH on Safari"
+                browser: Browsers.macOS("Safari"),
             });
 
             if (!Smd.authState.creds.registered) {
@@ -76,28 +73,28 @@ router.get('/', async (req, res) => {
                 if (connection === "open") {
                     try {
                         await delay(10000);
+                        if (fs.existsSync('./auth_info_baileys/creds.json'));
 
                         const auth_path = './auth_info_baileys/';
                         let user = Smd.user.id;
 
-                        // 🔥 CUSTOM FILENAME GENERATOR WITH SEPTORCH PREFIX
-                        function randomMegaId(prefix = "SEPTORCH", suffixLength = 6, numberLength = 4) {
+                        // Define randomMegaId function to generate random IDs
+                        function randomMegaId(length = 6, numberLength = 4) {
                             const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-                            let suffix = '';
-                            for (let i = 0; i < suffixLength; i++) {
-                                suffix += characters.charAt(Math.floor(Math.random() * characters.length));
+                            let result = '';
+                            for (let i = 0; i < length; i++) {
+                                result += characters.charAt(Math.floor(Math.random() * characters.length));
                             }
                             const number = Math.floor(Math.random() * Math.pow(10, numberLength));
-                            return `${prefix}-${suffix}${number}`;
+                            return `${result}${number}`;
                         }
 
                         // Upload credentials to Mega
                         const mega_url = await upload(fs.createReadStream(auth_path + 'creds.json'), `${randomMegaId()}.json`);
-                        const Id_session = mega_url.replace('https://mega.nz/file/',  '');
+                        const Id_session = mega_url.replace('https://mega.nz/file/', '');
 
                         const Scan_Id = Id_session;
 
-                        // Send session ID and message to user
                         let msgsss = await Smd.sendMessage(user, { text: Scan_Id });
                         await Smd.sendMessage(user, { text: MESSAGE }, { quoted: msgsss });
                         await delay(1000);
@@ -148,3 +145,4 @@ router.get('/', async (req, res) => {
 });
 
 module.exports = router;
+                    
