@@ -59,7 +59,7 @@
     "qrcode": "^1.5.3",
     "cheerio": "^1.0.0-rc.12",
     "dotenv": "^16.3.1",
-    "jimp": "^0.22.10"
+    "jimp": "^0.16.1"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"
