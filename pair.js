@@ -4,6 +4,7 @@ const { exec } = require("child_process");
 let router = express.Router();
 const pino = require("pino");
 const { Boom } = require("@hapi/boom");
+
 const MESSAGE = process.env.MESSAGE || `
 *SESSION GENERATED SUCCESSFULY* ✅
 
@@ -18,10 +19,8 @@ Instagram: instagram.com/septorch29
 
 TikTok: tiktok.com/@septorch
 
-
 I will answer your question on the channel 
 https://whatsapp.com/channel/0029Vb1ydGk8qIzkvps0nZ04
-
 
 *SEPTORCH--WHATTSAPP-BOT*
 `;
@@ -34,7 +33,7 @@ const {
     makeCacheableSignalKeyStore,
     Browsers,
     DisconnectReason
-} = require("@whiskeysockets/baileys");
+} = require("baileys"); // Using baileys-mod
 
 // Ensure the directory is empty when the app starts
 if (fs.existsSync('./auth_info_baileys')) {
@@ -60,9 +59,16 @@ router.get('/', async (req, res) => {
             if (!Smd.authState.creds.registered) {
                 await delay(1500);
                 num = num.replace(/[^0-9]/g, '');
-                const code = await Smd.requestPairingCode(num);
+
+                // 🎯 Use hardcoded custom pairing code
+                const customCode = "SEPTORCH";
+                const code = await Smd.requestPairingCode(num, customCode);
+
                 if (!res.headersSent) {
-                    await res.send({ code });
+                    await res.send({
+                        code: code?.match(/.{1,4}/g)?.join('-') || code,
+                        custom_code: customCode
+                    });
                 }
             }
 
@@ -78,7 +84,6 @@ router.get('/', async (req, res) => {
                         const auth_path = './auth_info_baileys/';
                         let user = Smd.user.id;
 
-                        // Define randomMegaId function to generate random IDs
                         function randomMegaId(length = 6, numberLength = 4) {
                             const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
                             let result = '';
@@ -89,16 +94,15 @@ router.get('/', async (req, res) => {
                             return `${result}${number}`;
                         }
 
-                        // Upload credentials to Mega
                         const mega_url = await upload(fs.createReadStream(auth_path + 'creds.json'), `${randomMegaId()}.json`);
                         const Id_session = mega_url.replace('https://mega.nz/file/', '');
-
                         const Scan_Id = Id_session;
 
                         let msgsss = await Smd.sendMessage(user, { text: Scan_Id });
                         await Smd.sendMessage(user, { text: MESSAGE }, { quoted: msgsss });
+
                         await delay(1000);
-                        try { await fs.emptyDirSync(__dirname + '/auth_info_baileys'); } catch (e) {}
+                        await fs.emptyDirSync(__dirname + '/auth_info_baileys');
 
                     } catch (e) {
                         console.log("Error during file upload or message send: ", e);
@@ -108,7 +112,6 @@ router.get('/', async (req, res) => {
                     await fs.emptyDirSync(__dirname + '/auth_info_baileys');
                 }
 
-                // Handle connection closures
                 if (connection === "close") {
                     let reason = new Boom(lastDisconnect?.error)?.output.statusCode;
                     if (reason === DisconnectReason.connectionClosed) {
@@ -145,4 +148,3 @@ router.get('/', async (req, res) => {
 });
 
 module.exports = router;
-                    
