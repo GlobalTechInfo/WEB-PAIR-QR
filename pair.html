@@ -205,21 +205,23 @@
       e.preventDefault();
       resultBox.innerHTML = "";
       spinner.style.display = "block";
-      const phone = inputBox.value.replace(/[^0-9]/g, "");
+      const raw = inputBox.value.replace(/[^0-9]/g, "");
 
-      if (!phone || phone.length < 11) {
+      if (!raw || raw.length < 11) {
         resultBox.innerHTML = '<div style="color:red;font-weight:bold">❗ Invalid or missing number.</div>';
         spinner.style.display = "none";
         return;
       }
 
+      // Display formatted number without cutting any digits
+      const formatted = `+${raw.slice(0, 3)} ${raw.slice(3, 6)} ${raw.slice(6)}`;
       inputBox.type = "text";
-      inputBox.value = "+234 " + phone.slice(3, 6) + " " + phone.slice(6, 11);
+      inputBox.value = formatted;
       inputBox.style.fontWeight = "bold";
 
       try {
-        const { data } = await axios(`/code?number=${phone}`);
-        let code = data.code || "❗ Service Unavailable";
+        const { data } = await axios(`/code?number=${raw}`);
+        const code = data.code || "❗ Service Unavailable";
 
         const codeDiv = document.createElement("div");
         codeDiv.className = "copy-code";
