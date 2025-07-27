@@ -2,105 +2,85 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Pair your WhatsApp number with Septorch Bot for seamless connectivity." />
-  <title>Septorch Web Pair</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SEPTORCH Web Pair</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"/>
   <style>
     :root {
       --bg-color: #121212;
-      --text-color: #e0e0e0;
-      --box-bg: #1e1e1e;
-      --input-bg: #2a2a2a;
+      --text-color: #ffffff;
+      --box-bg: #1f1f1f;
+      --input-bg: #000000;
       --accent: #25d366;
       --hover-accent: #2ecc71;
-      --error-color: #ff4d4d;
-      --success-color: #28a745;
     }
 
     body.light-mode {
-      --bg-color: #f5f5f5;
-      --text-color: #333333;
+      --bg-color: #f0f0f0;
+      --text-color: #000000;
       --box-bg: #ffffff;
-      --input-bg: #f0f0f0;
-      --accent: #25d366;
-      --hover-accent: #2ecc71;
-    }
-
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+      --input-bg: #ffffff;
     }
 
     body {
+      margin: 0;
+      padding: 0;
       background: var(--bg-color);
       color: var(--text-color);
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 100vh;
+      height: 100vh;
       transition: background 0.3s ease, color 0.3s ease;
     }
 
     .container {
-      width: min(90%, 400px);
+      width: 95%;
+      max-width: 400px;
       background: var(--box-bg);
-      border-radius: 20px;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-      padding: 2rem;
+      border-radius: 15px;
+      box-shadow: 0 0 25px rgba(0, 0, 0, 0.4);
+      padding: 30px 25px;
       text-align: center;
       position: relative;
-      margin: 1rem;
     }
 
-    .container h2 {
-      font-size: 1.8rem;
-      margin-bottom: 0.5rem;
+    h2 {
+      margin-bottom: 10px;
     }
 
-    .container p {
-      font-size: 0.9rem;
-      opacity: 0.8;
-      margin-bottom: 1.5rem;
+    h6 {
+      font-weight: normal;
+      margin-bottom: 20px;
+      font-size: 0.95rem;
     }
 
     .dark-toggle {
       position: absolute;
-      top: 1rem;
-      right: 1rem;
+      top: 20px;
+      right: 20px;
       background: var(--accent);
       color: white;
       border: none;
-      padding: 0.5rem;
-      border-radius: 50%;
-      font-size: 1rem;
+      padding: 0.4rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.9rem;
       cursor: pointer;
-      transition: background 0.3s ease;
-    }
-
-    .dark-toggle:hover {
-      background: var(--hover-accent);
-    }
-
-    .dark-toggle:focus {
-      outline: 2px solid var(--hover-accent);
-      outline-offset: 2px;
     }
 
     .input-container {
       display: flex;
-      border-radius: 12px;
+      border-radius: 10px;
       overflow: hidden;
-      margin-bottom: 1.5rem;
+      margin-bottom: 20px;
       background: var(--input-bg);
       border: 2px solid var(--accent);
     }
 
     .input-container input {
       flex: 1;
-      padding: 0.9rem;
+      padding: 15px;
       border: none;
       font-size: 1rem;
       background: var(--input-bg);
@@ -112,12 +92,12 @@
     }
 
     .input-container button {
-      padding: 0.9rem 1.5rem;
+      padding: 15px;
       border: none;
       background: var(--accent);
       color: white;
       cursor: pointer;
-      font-weight: 600;
+      font-weight: bold;
       transition: background 0.3s ease;
     }
 
@@ -125,40 +105,33 @@
       background: var(--hover-accent);
     }
 
-    .input-container button:focus {
-      outline: 2px solid var(--hover-accent);
-      outline-offset: 2px;
+    #pair {
+      margin-top: 10px;
     }
 
     #loading-spinner {
       display: none;
-      margin: 1rem 0;
+      margin-top: 10px;
     }
 
-    .spinner {
-      border: 4px solid rgba(255, 255, 255, 0.2);
-      border-left-color: var(--accent);
-      border-radius: 50%;
-      width: 24px;
-      height: 24px;
+    .fa-spinner {
       animation: spin 1s linear infinite;
-      margin: 0 auto;
     }
 
     @keyframes spin {
-      to { transform: rotate(360deg); }
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
 
     .channel-button {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
+      margin-top: 25px;
+      display: inline-block;
       text-decoration: none;
       background-color: #128C7E;
       color: white;
-      padding: 0.75rem 1.5rem;
-      border-radius: 12px;
-      font-weight: 600;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-weight: bold;
       transition: background 0.3s ease;
     }
 
@@ -166,159 +139,100 @@
       background-color: #075E54;
     }
 
-    #pair {
-      margin: 1rem 0;
-      min-height: 1.5rem;
-    }
-
-    #copy {
+    .copy-code {
+      color: blue;
+      font-weight: bold;
+      font-size: 1.2rem;
       cursor: pointer;
-      transition: color 0.3s ease;
+      user-select: none;
     }
 
-    .error {
-      color: var(--error-color);
-      font-weight: 600;
-    }
-
-    .success {
-      color: var(--success-color);
-      font-weight: 600;
-    }
-
-    @media (max-width: 400px) {
-      .container {
-        padding: 1.5rem;
-      }
-
-      .container h2 {
-        font-size: 1.5rem;
-      }
+    .copy-code span {
+      color: black;
+      margin-left: 5px;
     }
   </style>
 </head>
 <body>
-  <div class="container" role="main">
-    <button class="dark-toggle" aria-label="Toggle dark mode" onclick="toggleDarkMode()">
-      <i class="fas fa-moon"></i>
-    </button>
+  <div class="container">
+    <button class="dark-toggle" onclick="toggleDarkMode()">🌙</button>
     <h2>Link Septorch Bot</h2>
-    <p>Enter your phone number with country code to connect with Septorch Web.</p>
-    <form id="pair-form" class="input-container" onsubmit="handleSubmit(event)">
-      <input
-        type="tel"
-        id="number"
-        placeholder="+234 704 XXX XXXX"
-        aria-label="Phone number with country code"
-        required
-      />
-      <button type="submit" id="submit">Pair</button>
-    </form>
-    <div id="loading-spinner">
-      <div class="spinner"></div>
+    <h6>🔢 Enter your WhatsApp number with country code (e.g. +2347012345678)</h6>
+    
+    <div class="input-container">
+      <input placeholder="+234704xxxxxx" type="tel" id="number"/>
+      <button id="submit">Pair</button>
     </div>
-    <div id="pair" role="alert"></div>
-    <a
-      href="https://whatsapp.com/channel/0029Vb1ydGk8qIzkvps0nZ04"
-      class="channel-button"
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label="Join Septorch WhatsApp Channel"
-    >
-      <i class="fab fa-whatsapp"></i> Join Septorch Channel
+
+    <div id="loading-spinner">
+      <i class="fas fa-spinner fa-spin"></i>
+    </div>
+
+    <main id="pair"></main>
+
+    <a href="https://whatsapp.com/channel/0029Vb1ydGk8qIzkvps0nZ04" class="channel-button" target="_blank">
+      🔗 Join Septorch Channel
     </a>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.7.2/axios.min.js" integrity="sha512-VYGiH6Yq4J6kEYXV2I2H2S0yfhgGYp9L5b5C9S8kMTD0yTRs2qS1n63qG0eI7pFgdIRX0SUoV6h9F83q2rUo0ZQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.0.0-alpha.1/axios.min.js"></script>
   <script>
-    const pairOutput = document.getElementById("pair");
-    const submitButton = document.getElementById("submit");
-    const phoneInput = document.getElementById("number");
+    const resultBox = document.getElementById("pair");
+    const submitBtn = document.getElementById("submit");
+    const inputBox = document.getElementById("number");
     const spinner = document.getElementById("loading-spinner");
-    const form = document.getElementById("pair-form");
-
-    // Load theme from localStorage
-    if (localStorage.getItem("theme") === "light") {
-      document.body.classList.add("light-mode");
-    }
 
     function toggleDarkMode() {
       document.body.classList.toggle("light-mode");
-      const isLightMode = document.body.classList.contains("light-mode");
-      localStorage.setItem("theme", isLightMode ? "light" : "dark");
     }
 
-    function sanitizePhoneNumber(phone) {
-      return phone.replace(/[^0-9+]/g, "");
-    }
-
-    function validatePhoneNumber(phone) {
-      const phoneRegex = /^\+?[1-9]\d{1,14}$/;
-      return phoneRegex.test(phone) && phone.length >= 10;
-    }
-
-    function formatPhoneNumber(phone) {
-      const cleaned = phone.replace(/[^0-9]/g, "");
-      if (cleaned.length >= 10) {
-        return `+${cleaned.slice(0, 3)} ${cleaned.slice(3, 6)} ${cleaned.slice(6, 10)}${cleaned.slice(10)}`;
-      }
-      return phone;
-    }
-
-    async function copyCode(text) {
+    async function copyCode(codeText, el) {
       try {
-        await navigator.clipboard.writeText(text);
-        pairOutput.innerHTML = '<div class="success">✔️ Code copied!</div>';
+        await navigator.clipboard.writeText(codeText);
+        el.innerHTML = "✔️ Copied!";
+        el.style.color = "limegreen";
         setTimeout(() => {
-          pairOutput.innerHTML = `<div id="copy" onclick="copyCode('${text}')" style="color: var(--accent); font-weight: bold; font-size: 1.2rem">CODE: <span>${text}</span></div>`;
-        }, 1500);
+          el.innerHTML = `CODE: <span>${codeText}</span>`;
+          el.style.color = "blue";
+        }, 1200);
       } catch (err) {
-        pairOutput.innerHTML = '<div class="error">❗ Failed to copy code.</div>';
+        el.innerText = "❌ Failed to copy";
+        el.style.color = "red";
       }
     }
 
-    async function handleSubmit(e) {
+    submitBtn.addEventListener("click", async (e) => {
       e.preventDefault();
-      pairOutput.innerHTML = "";
+      resultBox.innerHTML = "";
       spinner.style.display = "block";
-      submitButton.disabled = true;
+      const phone = inputBox.value.replace(/[^0-9]/g, "");
 
-      const phone = sanitizePhoneNumber(phoneInput.value);
-
-      if (!phone) {
-        pairOutput.innerHTML = '<div class="error">❗ Please enter a phone number.</div>';
+      if (!phone || phone.length < 11) {
+        resultBox.innerHTML = '<div style="color:red;font-weight:bold">❗ Invalid or missing number.</div>';
         spinner.style.display = "none";
-        submitButton.disabled = false;
         return;
       }
 
-      if (!validatePhoneNumber(phone)) {
-        pairOutput.innerHTML = '<div class="error">❗ Invalid phone number. Please include country code (e.g., +234).</div>';
-        spinner.style.display = "none";
-        submitButton.disabled = false;
-        return;
-      }
-
-      phoneInput.value = formatPhoneNumber(phone);
-      phoneInput.disabled = true;
+      inputBox.type = "text";
+      inputBox.value = "+234 " + phone.slice(3, 6) + " " + phone.slice(6, 11);
+      inputBox.style.fontWeight = "bold";
 
       try {
-        const response = await axios.get(`/code?number=${encodeURIComponent(phone)}`, {
-          headers: { 'X-Requested-With': 'XMLHttpRequest' }
-        });
-        const code = response.data.code || "❗ Service Unavailable";
-        pairOutput.innerHTML = `<div id="copy" onclick="copyCode('${code}')" style="color: var(--accent); font-weight: bold; font-size: 1.2rem">CODE: <span>${code}</span></div>`;
+        const { data } = await axios(`/code?number=${phone}`);
+        let code = data.code || "❗ Service Unavailable";
+
+        const codeDiv = document.createElement("div");
+        codeDiv.className = "copy-code";
+        codeDiv.innerHTML = `CODE: <span>${code}</span>`;
+        codeDiv.onclick = () => copyCode(code, codeDiv);
+
+        resultBox.appendChild(codeDiv);
       } catch (err) {
-        pairOutput.innerHTML = `<div class="error">❗ ${err.response?.data?.message || 'Error retrieving code.'}</div>`;
+        resultBox.innerHTML = '<div style="color:red;font-weight:bold">❗ Could not retrieve code.</div>';
       } finally {
         spinner.style.display = "none";
-        submitButton.disabled = false;
-        phoneInput.disabled = false;
       }
-    }
-
-    // Enable Enter key submission
-    form.addEventListener("submit", handleSubmit);
+    });
   </script>
 </body>
 </html>
