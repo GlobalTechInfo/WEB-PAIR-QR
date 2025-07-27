@@ -1,150 +1,240 @@
-const express = require('express');
-const fs = require('fs-extra');
-const { exec } = require("child_process");
-let router = express.Router();
-const pino = require("pino");
-const { Boom } = require("@hapi/boom");
-
-const MESSAGE = process.env.MESSAGE || `
-*SESSION GENERATED SUCCESSFULY* ✅
-
-* Join the official channel for more courage, updates, and support!* 
-https://whatsapp.com/channel/0029Vb1ydGk8qIzkvps0nZ04
-
-*Ask me any question Here* 
-
-ngl.link/septorch
-
-Instagram: instagram.com/septorch29
-
-TikTok: tiktok.com/@septorch
-
-I will answer your question on the channel 
-https://whatsapp.com/channel/0029Vb1ydGk8qIzkvps0nZ04
-
-*SEPTORCH--WHATTSAPP-BOT*
-`;
-
-const { upload } = require('./mega');
-const {
-    default: makeWASocket,
-    useMultiFileAuthState,
-    delay,
-    makeCacheableSignalKeyStore,
-    Browsers,
-    DisconnectReason
-} = require("baileys"); // Using baileys-mod
-
-// Ensure the directory is empty when the app starts
-if (fs.existsSync('./auth_info_baileys')) {
-    fs.emptyDirSync(__dirname + '/auth_info_baileys');
-}
-
-router.get('/', async (req, res) => {
-    let num = req.query.number;
-
-    async function SUHAIL() {
-        const { state, saveCreds } = await useMultiFileAuthState(`./auth_info_baileys`);
-        try {
-            let Smd = makeWASocket({
-                auth: {
-                    creds: state.creds,
-                    keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "fatal" }).child({ level: "fatal" })),
-                },
-                printQRInTerminal: false,
-                logger: pino({ level: "fatal" }).child({ level: "fatal" }),
-                browser: Browsers.macOS("Safari"),
-            });
-
-            if (!Smd.authState.creds.registered) {
-                await delay(1500);
-                num = num.replace(/[^0-9]/g, '');
-
-                // 🎯 Use hardcoded custom pairing code
-                const customCode = "SEPTORCH";
-                const code = await Smd.requestPairingCode(num, customCode);
-
-                if (!res.headersSent) {
-                    await res.send({
-                        code: code?.match(/.{1,4}/g)?.join('-') || code,
-                        custom_code: customCode
-                    });
-                }
-            }
-
-            Smd.ev.on('creds.update', saveCreds);
-            Smd.ev.on("connection.update", async (s) => {
-                const { connection, lastDisconnect } = s;
-
-                if (connection === "open") {
-                    try {
-                        await delay(10000);
-                        if (fs.existsSync('./auth_info_baileys/creds.json'));
-
-                        const auth_path = './auth_info_baileys/';
-                        let user = Smd.user.id;
-
-                        function randomMegaId(length = 6, numberLength = 4) {
-                            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-                            let result = '';
-                            for (let i = 0; i < length; i++) {
-                                result += characters.charAt(Math.floor(Math.random() * characters.length));
-                            }
-                            const number = Math.floor(Math.random() * Math.pow(10, numberLength));
-                            return `${result}${number}`;
-                        }
-
-                        const mega_url = await upload(fs.createReadStream(auth_path + 'creds.json'), `${randomMegaId()}.json`);
-                        const Id_session = mega_url.replace('https://mega.nz/file/', '');
-                        const Scan_Id = Id_session;
-
-                        let msgsss = await Smd.sendMessage(user, { text: Scan_Id });
-                        await Smd.sendMessage(user, { text: MESSAGE }, { quoted: msgsss });
-
-                        await delay(1000);
-                        await fs.emptyDirSync(__dirname + '/auth_info_baileys');
-
-                    } catch (e) {
-                        console.log("Error during file upload or message send: ", e);
-                    }
-
-                    await delay(100);
-                    await fs.emptyDirSync(__dirname + '/auth_info_baileys');
-                }
-
-                if (connection === "close") {
-                    let reason = new Boom(lastDisconnect?.error)?.output.statusCode;
-                    if (reason === DisconnectReason.connectionClosed) {
-                        console.log("Connection closed!");
-                    } else if (reason === DisconnectReason.connectionLost) {
-                        console.log("Connection Lost from Server!");
-                    } else if (reason === DisconnectReason.restartRequired) {
-                        console.log("Restart Required, Restarting...");
-                        SUHAIL().catch(err => console.log(err));
-                    } else if (reason === DisconnectReason.timedOut) {
-                        console.log("Connection TimedOut!");
-                    } else {
-                        console.log('Connection closed with bot. Please run again.');
-                        console.log(reason);
-                        await delay(5000);
-                        exec('pm2 restart qasim');
-                    }
-                }
-            });
-
-        } catch (err) {
-            console.log("Error in SUHAIL function: ", err);
-            exec('pm2 restart qasim');
-            console.log("Service restarted due to error");
-            SUHAIL();
-            await fs.emptyDirSync(__dirname + '/auth_info_baileys');
-            if (!res.headersSent) {
-                await res.send({ code: "Try After Few Minutes" });
-            }
-        }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SEPTORCH Web Pair</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"/>
+  <style>
+    :root {
+      --bg-color: #121212;
+      --text-color: #ffffff;
+      --box-bg: #1f1f1f;
+      --input-bg: #000000;
+      --accent: #25d366;
+      --hover-accent: #2ecc71;
     }
 
-    await SUHAIL();
-});
+    body.light-mode {
+      --bg-color: #f0f0f0;
+      --text-color: #000000;
+      --box-bg: #ffffff;
+      --input-bg: #ffffff;
+    }
 
-module.exports = router;
+    body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg-color);
+      color: var(--text-color);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      transition: background 0.3s ease, color 0.3s ease;
+    }
+
+    .container {
+      width: 95%;
+      max-width: 400px;
+      background: var(--box-bg);
+      border-radius: 15px;
+      box-shadow: 0 0 25px rgba(0, 0, 0, 0.4);
+      padding: 30px 25px;
+      text-align: center;
+      position: relative;
+    }
+
+    h2 {
+      margin-bottom: 10px;
+    }
+
+    h6 {
+      font-weight: normal;
+      margin-bottom: 20px;
+      font-size: 0.95rem;
+    }
+
+    .dark-toggle {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: var(--accent);
+      color: white;
+      border: none;
+      padding: 0.4rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    .input-container {
+      display: flex;
+      border-radius: 10px;
+      overflow: hidden;
+      margin-bottom: 20px;
+      background: var(--input-bg);
+      border: 2px solid var(--accent);
+    }
+
+    .input-container input {
+      flex: 1;
+      padding: 15px;
+      border: none;
+      font-size: 1rem;
+      background: var(--input-bg);
+      color: var(--text-color);
+    }
+
+    .input-container input:focus {
+      outline: none;
+    }
+
+    .input-container button {
+      padding: 15px;
+      border: none;
+      background: var(--accent);
+      color: white;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.3s ease;
+    }
+
+    .input-container button:hover {
+      background: var(--hover-accent);
+    }
+
+    #pair {
+      margin-top: 10px;
+    }
+
+    #loading-spinner {
+      display: none;
+      margin-top: 10px;
+    }
+
+    .fa-spinner {
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .channel-button {
+      margin-top: 25px;
+      display: inline-block;
+      text-decoration: none;
+      background-color: #128C7E;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-weight: bold;
+      transition: background 0.3s ease;
+    }
+
+    .channel-button:hover {
+      background-color: #075E54;
+    }
+
+    .copy-code {
+      color: blue;
+      font-weight: bold;
+      font-size: 1.2rem;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .copy-code span {
+      color: black;
+      margin-left: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <button class="dark-toggle" onclick="toggleDarkMode()">🌙</button>
+    <h2>Link Septorch Bot</h2>
+    <h6>🔢 Enter your WhatsApp number with country code (e.g. +2347012345678)</h6>
+    
+    <div class="input-container">
+      <input placeholder="+234704xxxxxx" type="tel" id="number"/>
+      <button id="submit">Pair</button>
+    </div>
+
+    <div id="loading-spinner">
+      <i class="fas fa-spinner fa-spin"></i>
+    </div>
+
+    <main id="pair"></main>
+
+    <a href="https://whatsapp.com/channel/0029Vb1ydGk8qIzkvps0nZ04" class="channel-button" target="_blank">
+      🔗 Join Septorch Channel
+    </a>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.0.0-alpha.1/axios.min.js"></script>
+  <script>
+    const resultBox = document.getElementById("pair");
+    const submitBtn = document.getElementById("submit");
+    const inputBox = document.getElementById("number");
+    const spinner = document.getElementById("loading-spinner");
+
+    function toggleDarkMode() {
+      document.body.classList.toggle("light-mode");
+    }
+
+    async function copyCode(codeText, el) {
+      try {
+        await navigator.clipboard.writeText(codeText);
+        el.innerHTML = "✔️ Copied!";
+        el.style.color = "limegreen";
+        setTimeout(() => {
+          el.innerHTML = `CODE: <span>${codeText}</span>`;
+          el.style.color = "blue";
+        }, 1200);
+      } catch (err) {
+        el.innerText = "❌ Failed to copy";
+        el.style.color = "red";
+      }
+    }
+
+    submitBtn.addEventListener("click", async (e) => {
+      e.preventDefault();
+      resultBox.innerHTML = "";
+      spinner.style.display = "block";
+      const raw = inputBox.value.replace(/[^0-9]/g, "");
+
+      if (!raw || raw.length < 11) {
+        resultBox.innerHTML = '<div style="color:red;font-weight:bold">❗ Invalid or missing number.</div>';
+        spinner.style.display = "none";
+        return;
+      }
+
+      // Display formatted number without cutting any digits
+      const formatted = `+${raw.slice(0, 3)} ${raw.slice(3, 6)} ${raw.slice(6)}`;
+      inputBox.type = "text";
+      inputBox.value = formatted;
+      inputBox.style.fontWeight = "bold";
+
+      try {
+        const { data } = await axios(`/code?number=${raw}`);
+        const code = data.code || "❗ Service Unavailable";
+
+        const codeDiv = document.createElement("div");
+        codeDiv.className = "copy-code";
+        codeDiv.innerHTML = `CODE: <span>${code}</span>`;
+        codeDiv.onclick = () => copyCode(code, codeDiv);
+
+        resultBox.appendChild(codeDiv);
+      } catch (err) {
+        resultBox.innerHTML = '<div style="color:red;font-weight:bold">❗ Could not retrieve code.</div>';
+      } finally {
+        spinner.style.display = "none";
+      }
+    });
+  </script>
+</body>
+</html>
