@@ -13,26 +13,33 @@
       padding: 0;
     }
 
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+
     body {
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100vh;
       font-family: 'Orbitron', 'Roboto', sans-serif;
-      background: url('https://files.catbox.moe/dxyjlv.jpeg') no-repeat center center fixed;
+      background: #000;
+      background-image: url('https://files.catbox.moe/dxyjlv.jpeg');
       background-size: cover;
-      color: #ffffff; 
-      overflow: hidden;
-      text-align: center;
+      background-attachment: fixed;
+      color: #ffffff;
+      position: relative;
+      animation: fadeInPage 1.5s ease forwards;
+    }
+
+    @keyframes fadeInPage {
+      from { opacity: 0; transform: scale(0.98); }
+      to { opacity: 1; transform: scale(1); }
     }
 
     .overlay {
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      inset: 0;
       background: rgba(0, 0, 0, 0.6);
       z-index: 0;
     }
@@ -41,94 +48,83 @@
       position: relative;
       z-index: 1;
       max-width: 90%;
-      padding: 20px;
+      padding: 30px 20px;
+      backdrop-filter: blur(12px);
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 25px;
+      border: 1px solid rgba(0, 255, 200, 0.2);
+      box-shadow: 0 0 25px rgba(0, 255, 200, 0.2);
+      text-align: center;
+      animation: fadeInUp 2s ease forwards;
+    }
+
+    @keyframes fadeInUp {
+      from { transform: translateY(40px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
     }
 
     .title {
       color: #00ffc8;
-      font-size: 1.4rem;
+      font-size: 1.3rem;
       letter-spacing: 1px;
-      opacity: 0.9;
-      margin-bottom: 10px;
-      animation: fadeInTitle 2s ease forwards;
-    }
-
-    @keyframes fadeInTitle {
-      from { opacity: 0; transform: translateY(-10px); }
-      to { opacity: 1; transform: translateY(0); }
+      margin-bottom: 12px;
+      opacity: 0.85;
     }
 
     h1 {
+      font-size: 2.8rem;
       color: #00ffc8;
-      font-size: 2.6rem;
-      margin-bottom: 10px;
-      text-transform: uppercase;
+      margin-bottom: 12px;
       letter-spacing: 3px;
+      text-transform: uppercase;
+      text-shadow: 0 0 10px #00ffc8, 0 0 20px #00ffe5;
       animation: glow 2s ease-in-out infinite alternate;
     }
 
     @keyframes glow {
-      from {
-        text-shadow: 0 0 10px #00ffc8, 0 0 20px #00ffc8, 0 0 30px #00ffc8;
-      }
-      to {
-        text-shadow: 0 0 20px #00ffe5, 0 0 40px #00ffe5, 0 0 60px #00ffe5;
-      }
+      from { text-shadow: 0 0 10px #00ffc8; }
+      to { text-shadow: 0 0 25px #00ffe5; }
     }
 
     h2 {
+      font-size: 1.2rem;
       color: #ffffff;
-      font-size: 1.3rem;
-      margin-bottom: 40px;
-      letter-spacing: 2px;
-      opacity: 0.9;
+      margin-bottom: 30px;
+      letter-spacing: 1.5px;
     }
 
     .container {
       display: flex;
       flex-direction: column;
-      align-items: center;
-      gap: 25px;
-      animation: fadeInButtons 2s ease forwards;
-    }
-
-    @keyframes fadeInButtons {
-      from {
-        transform: translateY(30px);
-        opacity: 0;
-      }
-      to {
-        transform: translateY(0);
-        opacity: 1;
-      }
+      gap: 20px;
     }
 
     .btn {
-      width: 280px;
-      padding: 18px 30px;
-      font-size: 18px;
+      width: 260px;
+      padding: 16px 30px;
+      font-size: 1rem;
       text-transform: uppercase;
       font-weight: bold;
       border: 2px solid #00ffc8;
-      border-radius: 35px;
+      border-radius: 30px;
       background: transparent;
       color: #ffffff;
       cursor: pointer;
       position: relative;
       overflow: hidden;
-      transition: all 0.4s ease;
+      transition: 0.4s;
       box-shadow: 0 0 10px #00ffc8;
     }
 
     .btn::before {
       content: "";
       position: absolute;
-      top: 0;
       left: -100%;
+      top: 0;
       width: 100%;
       height: 100%;
       background: rgba(0, 255, 200, 0.2);
-      transition: left 0.6s ease;
+      transition: 0.6s;
     }
 
     .btn:hover::before {
@@ -138,27 +134,26 @@
     .btn:hover {
       background: #00ffc8;
       color: #002b2e;
+      transform: scale(1.05);
       box-shadow: 0 0 20px #00ffc8, 0 0 40px #00ffc8;
-      transform: scale(1.07);
     }
 
     .btn:active {
-      transform: scale(0.97);
-      box-shadow: 0 0 10px #00ffc8;
+      transform: scale(0.95);
     }
 
     .social-icons {
-      margin-top: 30px;
+      margin-top: 35px;
       display: flex;
-      gap: 20px;
-      animation: floatFooter 3s ease-in-out infinite alternate;
+      gap: 25px;
+      justify-content: center;
+      animation: floatIcons 3s ease-in-out infinite alternate;
     }
 
     .social-icon {
-      display: inline-block;
       color: #00ffc8;
       font-size: 1.8rem;
-      transition: all 0.3s ease;
+      transition: 0.3s ease;
       text-decoration: none;
       filter: drop-shadow(0 0 5px #00ffc8);
     }
@@ -170,57 +165,37 @@
     }
 
     footer {
-      margin-top: auto;
-      margin-bottom: 20px;
+      margin-top: 30px;
       font-size: 0.9rem;
       color: #00ffc8;
-      text-align: center;
-      letter-spacing: 1px;
       font-style: italic;
-      animation: floatFooter 3s ease-in-out infinite alternate;
+      letter-spacing: 1px;
+      animation: floatIcons 3s ease-in-out infinite alternate;
     }
 
-    @keyframes floatFooter {
+    @keyframes floatIcons {
       0% { transform: translateY(0); }
       100% { transform: translateY(-5px); }
     }
 
     @media (max-width: 600px) {
-      .title {
-        font-size: 1.1rem;
-      }
-
       h1 {
-        font-size: 2.2rem;
+        font-size: 2rem;
       }
-
       h2 {
-        font-size: 1.1rem;
-        margin-bottom: 30px;
+        font-size: 1rem;
       }
-
       .btn {
-        width: 85%;
-        font-size: 16px;
-        padding: 14px 20px;
+        width: 80%;
+        font-size: 0.9rem;
       }
-
-      .social-icons {
-        gap: 15px;
-      }
-
       .social-icon {
         font-size: 1.5rem;
-      }
-
-      footer {
-        font-size: 0.85rem;
       }
     }
   </style>
 </head>
 <body>
-
   <div class="overlay"></div>
 
   <div class="content">
@@ -235,18 +210,13 @@
     </div>
 
     <div class="social-icons">
-      <a href="https://instagram.com/septorch29"  target="_blank" class="social-icon">
-        <i class="fab fa-instagram"></i>
-      </a>
-      <a href="https://tiktok.com/@septorch"  target="_blank" class="social-icon">
-        <i class="fab fa-tiktok"></i>
-      </a>
+      <a href="https://instagram.com/septorch29" target="_blank" class="social-icon"><i class="fab fa-instagram"></i></a>
+      <a href="https://tiktok.com/@septorch" target="_blank" class="social-icon"><i class="fab fa-tiktok"></i></a>
     </div>
 
     <footer>
-      Powered by Septorch – Igniting future technology
+      Powered by Septorch – Igniting Future Technology
     </footer>
   </div>
-
 </body>
 </html>
