@@ -12,13 +12,13 @@ const {
     DisconnectReason,
 } = require('baileys');
 
-// Clear old session on startup
+// Session folder (will be cleared on each new QR)
 const SESSION_DIR = './auth_info_baileys_qr';
 if (fs.existsSync(SESSION_DIR)) {
     fs.emptyDirSync(SESSION_DIR);
 }
 
-// Default message after successful login
+// Success message after login
 const MESSAGE = process.env.MESSAGE || `
 *SESSION GENERATED SUCCESSFULLY* ✅
 
@@ -37,9 +37,8 @@ https://whatsapp.com/channel/0029Vb1ydGk8qIzkvps0nZ04
 *SEPTORCH--WHATSAPP-BOT*
 `;
 
+// QR Route
 router.get('/', async (req, res) => {
-    const { number } = req.query; // Optional: for future use
-
     const { state, saveCreds } = await useMultiFileAuthState(SESSION_DIR);
 
     const sock = makeWASocket({
@@ -47,25 +46,26 @@ router.get('/', async (req, res) => {
             creds: state.creds,
             keys: state.keys,
         },
-        printQRInTerminal: false, // We'll handle QR manually
+        printQRInTerminal: false,
         logger: pino({ level: 'silent' }),
         browser: Browsers.macOS('Safari'),
     });
 
-    // Function to generate QR code from text
+    // Generate QR code as Data URL
     const generateQrCode = async (qrData) => {
         try {
-            return await qrcode.toDataURL(qrData); // Returns base64 data URL
+            return await qrcode.toDataURL(qrData);
         } catch (err) {
-            console.error('QR Code generation error:', err);
+            console.error('QR Generation Error:', err);
             return null;
         }
     };
 
-    // Handle QR code generation
-    sock.ev.on('connection.update', async ({ qr }) => {
+    // Handle QR update
+    sock.ev.on('connection.update', async (update) => {
+        const { qr } = update;
         if (qr) {
-            console.log('QR Code generated, sending to client...');
+            console.log('New QR Code generated');
             const qrCodeDataUrl = await generateQrCode(qr);
             if (qrCodeDataUrl && !res.headersSent) {
                 return res.json({ success: true, qr: qrCodeDataUrl });
@@ -73,45 +73,44 @@ router.get('/', async (req, res) => {
         }
     });
 
-    // Handle connection success
+    // Save credentials when updated
     sock.ev.on('creds.update', saveCreds);
 
+    // Handle connection open
     sock.ev.on('connection.update', async (update) => {
         const { connection, lastDisconnect } = update;
 
         if (connection === 'open') {
-            console.log('WhatsApp connection opened successfully.');
-
+            console.log('✅ WhatsApp connected successfully!');
             const userJid = sock.user.id;
 
-            // Send success message after login
+            // Send welcome message
             setTimeout(async () => {
                 try {
                     await sock.sendMessage(userJid, { text: MESSAGE });
-                    console.log('Login success message sent.');
+                    console.log('✅ Login message sent to self.');
                 } catch (err) {
-                    console.error('Failed to send welcome message:', err);
+                    console.error('Failed to send message:', err);
                 }
-
-                // Optional: cleanup auth folder after use
-                // await fs.emptyDirSync(SESSION_DIR);
             }, 2000);
         }
 
         if (connection === 'close') {
             const reason = new Boom(lastDisconnect?.error)?.output?.statusCode;
-
-            console.log('Connection closed:', DisconnectReason[reason]);
+            console.log('❌ Connection closed:', DisconnectReason[reason]);
 
             if (reason === DisconnectReason.restartRequired) {
-                console.log('Restarting...');
+                console.log('🔄 Restarting...');
                 await delay(3000);
                 return qr();
             } else if (reason === DisconnectReason.timedOut) {
-                console.log('Connection timed out. Retrying...');
+                console.log('⏳ Timed out, reconnecting...');
                 return qr();
             } else {
-                console.log('Reconnect failed. Please try again.');
+                console.log('🔁 Reconnect failed. Please restart.');
+                if (!res.headersSent) {
+                    res.json({ success: false, error: 'Connection failed' });
+                }
             }
         }
     });
