@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Scan WhatsApp QR Code</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f0f2f5;
+      text-align: center;
+      padding: 40px;
+      margin: 0;
+    }
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 30px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    h2 {
+      color: #128C7E;
+      margin-bottom: 16px;
+    }
+    p {
+      color: #555;
+      font-size: 14px;
+    }
+    .qr-box {
+      margin: 20px auto;
+      padding: 15px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      display: inline-block;
+    }
+    img {
+      width: 280px;
+      height: 280px;
+      border-radius: 6px;
+      object-fit: contain;
+    }
+    .footer {
+      margin-top: 30px;
+      font-size: 12px;
+      color: #888;
+    }
+    .footer a {
+      color: #128C7E;
+      text-decoration: none;
+    }
+    .refresh {
+      margin-top: 10px;
+      font-size: 14px;
+    }
+    .refresh button {
+      background: #128C7E;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .refresh button:hover {
+      background: #0b6a5e;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>📱 Scan to Connect WhatsApp</h2>
+    <p>Open WhatsApp on your phone and go to <strong>Linked Devices > Link a Device</strong></p>
+
+    <div class="qr-box">
+      <img id="qr" src="" alt="Loading QR code..." />
+    </div>
+
+    <div class="refresh">
+      <button onclick="fetchQR()">Refresh QR</button>
+    </div>
+
+    <div class="footer">
+      Powered by <a href="https://whatsapp.com/channel/0029Vb1ydGk8qIzkvps0nZ04" target="_blank">Septorch</a> – Automation & Growth Tools
+    </div>
+  </div>
+
+  <script>
+    // Fetch QR from your server
+    async function fetchQR() {
+      const img = document.getElementById("qr");
+      img.src = "";
+      img.alt = "Loading QR...";
+
+      try {
+        const res = await fetch('/qr'); // Ensure this matches your route
+        const data = await res.json();
+
+        if (data.success && data.qr) {
+          img.src = data.qr;
+          img.alt = "Scan this QR with WhatsApp";
+        } else {
+          img.alt = "Failed to load QR code";
+          setTimeout(fetchQR, 5000); // Retry after 5s
+        }
+      } catch (err) {
+        console.error("Error fetching QR:", err);
+        img.alt = "Error: Could not connect";
+        setTimeout(fetchQR, 5000);
+      }
+    }
+
+    // Load QR on page load
+    window.onload = fetchQR;
+  </script>
+</body>
+</html>
