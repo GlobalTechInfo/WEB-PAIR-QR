@@ -1,130 +1,252 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Septorch Pair Page</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&family=Roboto&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
   <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
     body {
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       height: 100vh;
-      margin: 0;
-      font-family: 'Roboto', 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #4e9f3d, #34d7b7, #55c7f7);
-      background-size: 300% 300%;
-      animation: gradientAnimation 10s ease infinite;
+      font-family: 'Orbitron', 'Roboto', sans-serif;
+      background: url('https://files.catbox.moe/dxyjlv.jpeg') no-repeat center center fixed;
+      background-size: cover;
+      color: #ffffff; 
+      overflow: hidden;
+      text-align: center;
     }
 
-    @keyframes gradientAnimation {
-      0% { background-position: 0% 50%; }
-      50% { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 0;
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+      max-width: 90%;
+      padding: 20px;
+    }
+
+    .title {
+      color: #00ffc8;
+      font-size: 1.4rem;
+      letter-spacing: 1px;
+      opacity: 0.9;
+      margin-bottom: 10px;
+      animation: fadeInTitle 2s ease forwards;
+    }
+
+    @keyframes fadeInTitle {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
     }
 
     h1 {
-      color: white;
-      font-size: 3.5rem;
-      margin-bottom: 40px;
-      text-align: center;
-      letter-spacing: 3px;
+      color: #00ffc8;
+      font-size: 2.6rem;
+      margin-bottom: 10px;
       text-transform: uppercase;
-      font-weight: 700;
-      text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+      letter-spacing: 3px;
+      animation: glow 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes glow {
+      from {
+        text-shadow: 0 0 10px #00ffc8, 0 0 20px #00ffc8, 0 0 30px #00ffc8;
+      }
+      to {
+        text-shadow: 0 0 20px #00ffe5, 0 0 40px #00ffe5, 0 0 60px #00ffe5;
+      }
+    }
+
+    h2 {
+      color: #ffffff;
+      font-size: 1.3rem;
+      margin-bottom: 40px;
+      letter-spacing: 2px;
+      opacity: 0.9;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 25px;
+      animation: fadeInButtons 2s ease forwards;
+    }
+
+    @keyframes fadeInButtons {
+      from {
+        transform: translateY(30px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
     }
 
     .btn {
-      width: 250px;
-      padding: 15px 25px;
-      margin: 10px;
-      background: transparent;
-      border-radius: 25px;
-      border: 2px solid #ffffff;
+      width: 280px;
+      padding: 18px 30px;
       font-size: 18px;
-      font-weight: bold;
       text-transform: uppercase;
-      color: white;
-      text-align: center;
+      font-weight: bold;
+      border: 2px solid #00ffc8;
+      border-radius: 35px;
+      background: transparent;
+      color: #ffffff;
+      cursor: pointer;
       position: relative;
       overflow: hidden;
-      cursor: pointer;
       transition: all 0.4s ease;
-      box-shadow: 0 5px 15px rgba(255, 255, 255, 0.3);
+      box-shadow: 0 0 10px #00ffc8;
     }
 
-    /* Add shine effect on hover */
     .btn::before {
-      content: '';
+      content: "";
       position: absolute;
-      top: -50%;
-      left: -50%;
-      height: 200%;
-      width: 200%;
-      background: rgba(255, 255, 255, 0.3);
-      transform: skewX(45deg);
-      transition: all 0.5s;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 255, 200, 0.2);
+      transition: left 0.6s ease;
     }
 
     .btn:hover::before {
-      top: 0;
       left: 0;
-      height: 100%;
-      width: 100%;
     }
 
     .btn:hover {
-      background-color: #ffffff;
-      color: #333;
-      box-shadow: 0 10px 25px rgba(255, 255, 255, 0.5);
-      transform: scale(1.05);
+      background: #00ffc8;
+      color: #002b2e;
+      box-shadow: 0 0 20px #00ffc8, 0 0 40px #00ffc8;
+      transform: scale(1.07);
     }
 
     .btn:active {
-      filter: brightness(0.9);
-      transform: scale(0.98);
+      transform: scale(0.97);
+      box-shadow: 0 0 10px #00ffc8;
     }
 
-    /* Responsive Design */
+    .social-icons {
+      margin-top: 30px;
+      display: flex;
+      gap: 20px;
+      animation: floatFooter 3s ease-in-out infinite alternate;
+    }
+
+    .social-icon {
+      display: inline-block;
+      color: #00ffc8;
+      font-size: 1.8rem;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      filter: drop-shadow(0 0 5px #00ffc8);
+    }
+
+    .social-icon:hover {
+      transform: scale(1.2);
+      color: #ffffff;
+      filter: drop-shadow(0 0 10px #00ffe5);
+    }
+
+    footer {
+      margin-top: auto;
+      margin-bottom: 20px;
+      font-size: 0.9rem;
+      color: #00ffc8;
+      text-align: center;
+      letter-spacing: 1px;
+      font-style: italic;
+      animation: floatFooter 3s ease-in-out infinite alternate;
+    }
+
+    @keyframes floatFooter {
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-5px); }
+    }
+
     @media (max-width: 600px) {
+      .title {
+        font-size: 1.1rem;
+      }
+
       h1 {
         font-size: 2.2rem;
       }
+
+      h2 {
+        font-size: 1.1rem;
+        margin-bottom: 30px;
+      }
+
       .btn {
-        width: 80%;
-        padding: 12px 20px;
+        width: 85%;
         font-size: 16px;
+        padding: 14px 20px;
+      }
+
+      .social-icons {
+        gap: 15px;
+      }
+
+      .social-icon {
+        font-size: 1.5rem;
+      }
+
+      footer {
+        font-size: 0.85rem;
       }
     }
-
-    @media (min-width: 600px) and (max-width: 1024px) {
-      h1 {
-        font-size: 2.8rem;
-      }
-      .btn {
-        width: 220px;
-        padding: 14px 22px;
-      }
-    }
-
-    @media (min-width: 1024px) {
-      h1 {
-        font-size: 3.5rem;
-      }
-      .btn {
-        width: 250px;
-        padding: 15px 25px;
-      }
-    }
-
   </style>
 </head>
 <body>
 
-  <button onclick="window.open(`/qr`)" class="btn">QR Code</button>
-  <button onclick="window.open(`/pair`)" class="btn">Pair Code</button>
-  <button onclick="window.open(`https://youtu.be/zWhrpm3Y63Y?si=UPGNk_Btkst-IkPl`)" class="btn">HOW TO DEPLOY</button>
-  <button onclick="window.open(`https://whatsapp.com/channel/0029Vb1ydGk8qIzkvps0nZ04`)" class="btn">WhatsApp Channel</button>
+  <div class="overlay"></div>
+
+  <div class="content">
+    <div class="title">Systems for Emerging Platforms, Technology, Operations, Research, Computing & Hardware</div>
+    <h1>Septorch</h1>
+    <h2>Pair Page – Choose Your Action Below</h2>
+
+    <div class="container">
+      <button onclick="window.open('/qr', '_self')" class="btn">QR Code</button>
+      <button onclick="window.open('/pair', '_self')" class="btn">Pair Code</button>
+      <button onclick="window.open('https://whatsapp.com/channel/0029Vb1ydGk8qIzkvps0nZ04',  '_blank')" class="btn">WhatsApp</button>
+    </div>
+
+    <div class="social-icons">
+      <a href="https://instagram.com/septorch29"  target="_blank" class="social-icon">
+        <i class="fab fa-instagram"></i>
+      </a>
+      <a href="https://tiktok.com/@septorch"  target="_blank" class="social-icon">
+        <i class="fab fa-tiktok"></i>
+      </a>
+    </div>
+
+    <footer>
+      Powered by Septorch – Igniting future technology
+    </footer>
+  </div>
 
 </body>
 </html>
