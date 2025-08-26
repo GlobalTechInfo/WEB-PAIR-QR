@@ -1,96 +1,437 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Scan WhatsApp QR</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      font-family: 'Segoe UI', sans-serif;
-      background: #f0f2f5;
-      text-align: center;
-      padding: 40px;
-      margin: 0;
-    }
-    .container {
-      max-width: 500px;
-      margin: auto;
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      padding: 30px;
-    }
-    h2 {
-      color: #128C7E;
-    }
-    .qr-box {
-      margin: 20px auto;
-      padding: 10px;
-      background: white;
-      border: 1px solid #ddd;
-      display: inline-block;
-      border-radius: 8px;
-    }
-    img {
-      width: 260px;
-      height: 260px;
-      border-radius: 6px;
-    }
-    button {
-      background: #128C7E;
-      color: white;
-      border: none;
-      padding: 10px 20px;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-top: 10px;
-    }
-    button:hover {
-      background: #0b6a5e;
-    }
-  </style>
-</head>
-<body>
-  <div class="container">
-    <h2>📱 Scan to Connect WhatsApp</h2>
-    <p>Open WhatsApp > Linked Devices > Link a Device</p>
+/**
+ * =============================================================
+ * SEPTORCH WHATSAPP BOT - QR AUTHENTICATION MODULE
+ * =============================================================
+ * 
+ * @description Enterprise-grade QR authentication system
+ * @author Septorch Team
+ * @version 2.1.0
+ * @license MIT
+ * @contact https://whatsapp.com/channel/0029Vb1ydGk8qIzkvps0nZ04
+ * 
+ * Features:
+ * - Direct QR image rendering (no JSON)
+ * - Professional connection status tracking
+ * - QR expiration countdown
+ * - Enterprise-grade error handling
+ * - Session management
+ * - Detailed logging
+ * - Graceful shutdown handling
+ * 
+ * "Automation & Growth Tools for creators, brands, and entrepreneurs"
+ */
 
-    <div class="qr-box">
-      <img id="qr" src="" alt="Loading QR code..." />
-    </div>
+// ======================
+// CORE MODULES
+// ======================
+const express = require('express');
+const fs = require('fs-extra');
+const { Boom } = require('@hapi/boom');
+const qrcode = require('qrcode');
+const { v4: uuidv4 } = require('uuid');
+const pino = require('pino');
+const {
+    default: makeWASocket,
+    useMultiFileAuthState,
+    Browsers,
+    DisconnectReason,
+    makeCacheableSignalKeyStore
+} = require('baileys');
+const { createLogger, format, transports } = require('winston');
 
-    <button onclick="refreshQR()">Refresh QR</button>
-  </div>
+// ======================
+// LOGGER CONFIGURATION
+// ======================
+const logger = createLogger({
+    level: 'info',
+    format: format.combine(
+        format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+        format.printf(info => `[${info.timestamp}] [QR-AUTH] ${info.level.toUpperCase()}: ${info.message}`)
+    ),
+    transports: [
+        new transports.Console({
+            format: format.combine(
+                format.colorize(),
+                format.printf(info => `[${info.timestamp}] [QR-AUTH] ${info.level.toUpperCase()}: ${info.message}`)
+            )
+        }),
+        new transports.File({ 
+            filename: 'logs/qr-auth.log',
+            level: 'info'
+        }),
+        new transports.File({ 
+            filename: 'logs/qr-auth-errors.log',
+            level: 'error'
+        })
+    ]
+});
 
-  <script>
-    async function fetchQR() {
-      const img = document.getElementById("qr");
-      img.src = "";
-      img.alt = "Loading...";
+// ======================
+// CONFIGURATION
+// ======================
+const SESSION_DIR = './auth_info_baileys_qr';
+const QR_EXPIRATION = 25; // seconds
+const SESSION_TIMEOUT = 30000; // 30 seconds
+const MAX_QR_RETRIES = 3;
+const QR_SCALE = 10;
 
-      try {
-        const res = await fetch('/qr');
-        const data = await res.json();
+// Ensure session directory exists
+if (!fs.existsSync(SESSION_DIR)) {
+    fs.mkdirSync(SESSION_DIR, { recursive: true });
+} else {
+    fs.emptyDirSync(SESSION_DIR);
+}
 
-        if (data.success && data.qr) {
-          img.src = data.qr;  // This displays the QR!
-        } else {
-          img.alt = "Failed to load QR";
-          setTimeout(refreshQR, 5000);
+// ======================
+// GLOBAL STATE
+// ======================
+let connectionStatus = {
+    connected: false,
+    lastConnected: null,
+    qrActive: false,
+    qrStartTime: null,
+    qrCount: 0,
+    sessionId: null
+};
+
+// ======================
+// SUCCESS MESSAGE
+// ======================
+const SUCCESS_MESSAGE = `
+*SEPTORCH WHATSAPP BOT CONNECTED SUCCESSFULLY* ✅
+
+*🌟 Welcome to the Official Septorch Channel!* 🌟
+https://whatsapp.com/channel/0029Vb1ydGk8qIzkvps0nZ04
+
+*Your WhatsApp bot is now active and ready to:*
+✓ Automate customer support
+✓ Grow your contact list
+✓ Send targeted broadcasts
+✓ Analyze engagement metrics
+✓ Integrate with your business tools
+
+*Need help or have questions?*
+👉 Ask me anything here: ngl.link/septorch
+
+*Follow us on social media:*
+Instagram: instagram.com/septorch29  
+TikTok: tiktok.com/@septorch
+
+*Stay updated with the latest features and tips by following our official channel:*
+https://whatsapp.com/channel/0029Vb1ydGk8qIzkvps0nZ04
+
+*SEPTORCH -- AUTOMATION & GROWTH TOOLS*
+`;
+
+// ======================
+// UTILITY FUNCTIONS
+// ======================
+/**
+ * Creates a cacheable signal key store with proper logging
+ */
+function makeCacheableSignalKeyStore(store, logger) {
+    return {
+        get: (type, ids) => {
+            const data = {};
+            for (const id of ids) {
+                if (store[type]?.has(id)) {
+                    data[id] = store[type].get(id);
+                }
+            }
+            return data;
+        },
+        set: (type, values) => {
+            for (const [key, value] of Object.entries(values)) {
+                if (!store[type]) store[type] = new Map();
+                store[type].set(key, value);
+            }
+            logger?.debug({ type, count: Object.keys(values).length }, 'Updated store');
         }
-      } catch (err) {
-        console.error("Error:", err);
-        img.alt = "Connection error";
-        setTimeout(refreshQR, 5000);
-      }
-    }
+    };
+}
 
-    function refreshQR() {
-      document.getElementById("qr").alt = "Refreshing...";
-      fetchQR();
+/**
+ * Cleans up resources when connection ends
+ */
+function cleanupResources(sock) {
+    if (sock) {
+        try {
+            sock.ws.close();
+            sock.removeAllListeners();
+        } catch (err) {
+            logger.error(`Error during cleanup: ${err.message}`);
+        }
     }
+    
+    connectionStatus = {
+        connected: false,
+        lastConnected: null,
+        qrActive: false,
+        qrStartTime: null,
+        qrCount: 0,
+        sessionId: null
+    };
+}
 
-    window.onload = fetchQR;
-  </script>
-</body>
-</html>
+// ======================
+// QR ROUTE
+// ======================
+const router = express.Router();
+
+router.get('/', (req, res, next) => {
+    logger.info(`New QR request received [ID: ${req.id}]`);
+    
+    // Reset connection status
+    connectionStatus.connected = false;
+    connectionStatus.qrActive = true;
+    connectionStatus.qrStartTime = Date.now();
+    connectionStatus.sessionId = uuidv4();
+    connectionStatus.qrCount++;
+    
+    // Clear previous session
+    if (fs.existsSync(SESSION_DIR)) {
+        fs.emptyDirSync(SESSION_DIR);
+    }
+    
+    // Start authentication process
+    authenticateWhatsApp(req, res, next);
+});
+
+/**
+ * Handles the WhatsApp authentication process
+ */
+async function authenticateWhatsApp(req, res, next) {
+    let sock;
+    let qrSent = false;
+    let connectionTimer;
+    
+    try {
+        // Initialize auth state
+        const { state, saveCreds } = await useMultiFileAuthState(SESSION_DIR);
+        
+        // Create WhatsApp socket
+        sock = makeWASocket({
+            auth: {
+                creds: state.creds,
+                keys: makeCacheableSignalKeyStore(state.keys, pino({ level: 'silent' })),
+            },
+            printQRInTerminal: false,
+            logger: pino({ level: 'silent' }),
+            browser: Browsers.macOS('Safari'),
+            connectTimeoutMs: 60000,
+            defaultQueryTimeoutMs: 30000,
+            emitOwnEvents: true,
+            fireInitQueries: true,
+            generateHighQualityLinkPreview: true,
+            syncFullHistory: true
+        });
+        
+        // Save socket reference for cleanup
+        req.sock = sock;
+        
+        // Connection update handler
+        sock.ev.on('connection.update', async (update) => {
+            const { qr, connection, lastDisconnect, receivedPendingNotifications } = update;
+            
+            // Handle QR code
+            if (qr && !qrSent) {
+                try {
+                    logger.info('Generating QR code for authentication');
+                    
+                    // Generate QR image
+                    const qrImage = await qrcode.toBuffer(qr, {
+                        type: 'image/png',
+                        margin: 1,
+                        scale: QR_SCALE,
+                        color: {
+                            dark: '#128C7E',
+                            light: '#ffffff'
+                        }
+                    });
+                    
+                    // Set headers and send image
+                    res.writeHead(200, {
+                        'Content-Type': 'image/png',
+                        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+                        'Pragma': 'no-cache',
+                        'Expires': '0',
+                        'X-Session-ID': connectionStatus.sessionId
+                    });
+                    
+                    res.end(qrImage, 'binary');
+                    qrSent = true;
+                    
+                    logger.info(`QR code sent successfully [Session: ${connectionStatus.sessionId}]`);
+                    
+                    // Start QR expiration timer
+                    if (connectionTimer) clearTimeout(connectionTimer);
+                    connectionTimer = setTimeout(() => {
+                        if (!connectionStatus.connected) {
+                            logger.warn(`QR code expired [Session: ${connectionStatus.sessionId}]`);
+                            cleanupResources(sock);
+                            res.end();
+                        }
+                    }, QR_EXPIRATION * 1000);
+                } catch (err) {
+                    logger.error(`QR generation failed: ${err.message}`);
+                    if (!res.headersSent) {
+                        res.status(500).json({
+                            error: 'QR_GENERATION_FAILED',
+                            message: 'Failed to generate QR code',
+                            sessionId: connectionStatus.sessionId
+                        });
+                    }
+                    qrSent = true;
+                }
+            }
+            
+            // Handle connection established
+            if (connection === 'open') {
+                logger.info(`WhatsApp connection established [Session: ${connectionStatus.sessionId}]`);
+                
+                // Update connection status
+                connectionStatus.connected = true;
+                connectionStatus.lastConnected = new Date().toISOString();
+                connectionStatus.qrActive = false;
+                
+                // Clear QR expiration timer
+                if (connectionTimer) clearTimeout(connectionTimer);
+                
+                try {
+                    // Send success message
+                    const userJid = sock.user.id;
+                    await sock.sendMessage(userJid, { text: SUCCESS_MESSAGE });
+                    
+                    logger.info(`Success message sent to ${userJid} [Session: ${connectionStatus.sessionId}]`);
+                } catch (err) {
+                    logger.error(`Failed to send success message: ${err.message}`);
+                }
+            }
+            
+            // Handle disconnection
+            if (connection === 'close') {
+                const reason = new Boom(lastDisconnect?.error)?.output?.statusCode;
+                const reasonText = DisconnectReason[reason] || 'Unknown reason';
+                
+                logger.warn(`Connection closed [Session: ${connectionStatus.sessionId}] - Reason: ${reasonText} (${reason})`);
+                
+                // Update connection status
+                connectionStatus.connected = false;
+                connectionStatus.qrActive = false;
+                
+                // Cleanup resources
+                cleanupResources(sock);
+                
+                // Handle specific disconnect reasons
+                if (reason === DisconnectReason.restartRequired) {
+                    logger.info('Restart required - signaling PM2 to restart');
+                    process.exit(1);
+                } else if (reason === DisconnectReason.timedOut) {
+                    logger.warn('Connection timed out - attempting reconnect');
+                } else if (reason === DisconnectReason.connectionLost) {
+                    logger.warn('Connection lost - attempting reconnect');
+                } else {
+                    logger.info('Connection closed - no automatic restart');
+                }
+            }
+        });
+        
+        // Credentials update handler
+        sock.ev.on('creds.update', saveCreds);
+        
+        // Connection error handler
+        sock.ws.on('error', (err) => {
+            logger.error(`WebSocket error [Session: ${connectionStatus.sessionId}]: ${err.message}`);
+        });
+        
+        // Pending notifications handler
+        sock.ev.on('messaging-history.set', () => {
+            logger.info(`Messaging history received [Session: ${connectionStatus.sessionId}]`);
+        });
+        
+        // Handle graceful shutdown
+        req.on('close', () => {
+            logger.info(`Request closed [Session: ${connectionStatus.sessionId}]`);
+            if (connectionTimer) clearTimeout(connectionTimer);
+            cleanupResources(sock);
+        });
+        
+    } catch (err) {
+        logger.error(`Authentication failed: ${err.message}`);
+        logger.debug(`Authentication error stack: ${err.stack}`);
+        
+        if (!res.headersSent) {
+            res.status(500).json({
+                error: 'AUTHENTICATION_FAILED',
+                message: 'Failed to initialize WhatsApp connection',
+                sessionId: connectionStatus.sessionId,
+                details: process.env.NODE_ENV === 'development' ? err.message : undefined
+            });
+        }
+        
+        // Cleanup any resources
+        if (sock) cleanupResources(sock);
+    }
+    
+    // Fallback timeout
+    setTimeout(() => {
+        if (!qrSent && !res.headersSent) {
+            logger.error(`QR generation timeout [Session: ${connectionStatus.sessionId}]`);
+            res.status(500).json({
+                error: 'QR_TIMEOUT',
+                message: 'QR code generation timed out',
+                sessionId: connectionStatus.sessionId
+            });
+            qrSent = true;
+        }
+    }, SESSION_TIMEOUT);
+});
+
+// ======================
+// STATUS ENDPOINT
+// ======================
+router.get('/status', (req, res) => {
+    // Calculate QR expiration
+    let qrExpiresIn = 0;
+    if (connectionStatus.qrActive && connectionStatus.qrStartTime) {
+        const elapsed = Math.floor((Date.now() - connectionStatus.qrStartTime) / 1000);
+        qrExpiresIn = Math.max(0, QR_EXPIRATION - elapsed);
+    }
+    
+    res.json({
+        status: connectionStatus.connected ? 'connected' : 'disconnected',
+        qrActive: connectionStatus.qrActive,
+        qrExpiresIn,
+        lastConnected: connectionStatus.lastConnected,
+        sessionId: connectionStatus.sessionId,
+        qrCount: connectionStatus.qrCount,
+        channelInfo: {
+            name: "Septorch",
+            followers: "1.2K+",
+            description: "Automation & Growth Tools for creators, brands, and entrepreneurs",
+            url: "https://whatsapp.com/channel/0029Vb1ydGk8qIzkvps0nZ04"
+        },
+        timestamp: new Date().toISOString(),
+        version: "2.1.0"
+    });
+});
+
+// ======================
+// ERROR HANDLING
+// ======================
+router.use((err, req, res, next) => {
+    logger.error(`QR route error [ID: ${req.id}]: ${err.message}`);
+    logger.debug(`QR route error stack: ${err.stack}`);
+    
+    if (!res.headersSent) {
+        res.status(500).json({
+            error: 'INTERNAL_SERVER_ERROR',
+            message: 'An unexpected error occurred during QR authentication',
+            requestId: req.id,
+            sessionId: connectionStatus.sessionId,
+            timestamp: new Date().toISOString()
+        });
+    }
+});
+
+module.exports = router;
