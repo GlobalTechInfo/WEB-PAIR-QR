@@ -1,143 +1,141 @@
-const express = require('express');
-const fs = require('fs-extra');
-const { exec } = require("child_process");
-let router = express.Router();
-const pino = require("pino");
-const { Boom } = require("@hapi/boom");
-const MESSAGE = process.env.MESSAGE || `
-*SESSION GENERATED SUCCESSFULY* ✅
-
-*Gɪᴠᴇ ᴀ ꜱᴛᴀʀ ᴛᴏ ʀᴇᴘᴏ ꜰᴏʀ ᴄᴏᴜʀᴀɢᴇ* 🌟
-https://github.com/GuhailTechInfo/ULTRA-MD
-
-*Sᴜᴘᴘᴏʀᴛ Gʀᴏᴜᴘ ꜰᴏʀ ϙᴜᴇʀʏ* 💭
-https://t.me/GlobalBotInc
-https://whatsapp.com/channel/0029VagJIAr3bbVBCpEkAM07
-
-
-*Yᴏᴜ-ᴛᴜʙᴇ ᴛᴜᴛᴏʀɪᴀʟꜱ* 🪄 
-https://youtube.com/GlobalTechInfo
-
-*ULTRA-MD--WHATTSAPP-BOT* 🥀
-`;
-
-const { upload } = require('./mega');
-const {
-    default: makeWASocket,
+import express from 'express';
+import fs from 'fs-extra';
+import pino from 'pino';
+import pn from 'awesome-phonenumber';
+import { exec } from 'child_process';
+import {
+    makeWASocket,
     useMultiFileAuthState,
     delay,
     makeCacheableSignalKeyStore,
     Browsers,
-    DisconnectReason
-} = require("@whiskeysockets/baileys");
+    jidNormalizedUser,
+    fetchLatestBaileysVersion
+} from '@whiskeysockets/baileys';
+import { upload as megaUpload } from './mega.js';
 
-// Ensure the directory is empty when the app starts
-if (fs.existsSync('./auth_info_baileys')) {
-    fs.emptyDirSync(__dirname + '/auth_info_baileys');
+const router = express.Router();
+
+const MESSAGE = `
+*SESSION GENERATED SUCCESSFULLY* ✅
+https://github.com/GlobalTechInfo/MEGA-MD
+https://t.me/Global_TechInfo
+https://whatsapp.com/channel/0029VagJIAr3bbVBCpEkAM07
+https://youtube.com/@GlobalTechInfo
+`;
+
+async function removeFile(path) {
+    if (fs.existsSync(path)) await fs.remove(path);
+}
+
+function randomMegaId(len = 6, numLen = 4) {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let out = '';
+    for (let i = 0; i < len; i++) out += chars.charAt(Math.floor(Math.random() * chars.length));
+    const number = Math.floor(Math.random() * Math.pow(10, numLen));
+    return `${out}${number}`;
 }
 
 router.get('/', async (req, res) => {
     let num = req.query.number;
+    const dirs = './auth_info_baileys';
 
-    async function SUHAIL() {
-        const { state, saveCreds } = await useMultiFileAuthState(`./auth_info_baileys`);
+    await removeFile(dirs);
+
+    // ✅ Correct pn() usage
+    num = num.replace(/[^0-9]/g, '');
+    const phone = pn('+' + num);
+
+    if (!phone.isValid()) {
+        return res.status(400).send({ code: 'Invalid phone number. Use full international format without + or spaces.' });
+    }
+
+    num = phone.getNumber('e164').replace('+', '');
+
+    async function runSession() {
         try {
-            let Smd = makeWASocket({
-                auth: {
-                    creds: state.creds,
-                    keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "fatal" }).child({ level: "fatal" })),
-                },
+            const { state, saveCreds } = await useMultiFileAuthState(dirs);
+            const { version } = await fetchLatestBaileysVersion();
+
+            const sock = makeWASocket({
+                version,
+                auth: { creds: state.creds, keys: makeCacheableSignalKeyStore(state.keys, pino({ level: "fatal" })) },
                 printQRInTerminal: false,
-                logger: pino({ level: "fatal" }).child({ level: "fatal" }),
-                browser: Browsers.macOS("Safari"),
+                logger: pino({ level: "fatal" }),
+                browser: Browsers.windows('Chrome'),
+                markOnlineOnConnect: false
             });
 
-            if (!Smd.authState.creds.registered) {
+            sock.ev.on('connection.update', async ({ connection, lastDisconnect }) => {
+                if (connection === 'open') {
+                    const credsFile = `${dirs}/creds.json`;
+                    if (fs.existsSync(credsFile)) {
+                        try {
+                            const id = randomMegaId();
+                            const megaLink = await megaUpload(fs.createReadStream(credsFile), `${id}.json`);
+                            const sessionId = megaLink.replace('https://mega.nz/file/', '');
+
+                            const userJid = jidNormalizedUser(num + '@s.whatsapp.net');
+                            const m1 = await sock.sendMessage(userJid, { text: sessionId });
+                            await sock.sendMessage(userJid, { text: MESSAGE, quoted: m1 });
+
+                            await delay(800);
+                            await removeFile(dirs);
+                        } catch (err) {
+                            console.error('Error sending Mega link:', err);
+                            await removeFile(dirs);
+                        }
+                    }
+                }
+
+                if (connection === 'close') {
+                    const code = lastDisconnect?.error?.output?.statusCode;
+                    if (code === 401) {
+                        console.log('Logged out');
+                        await removeFile(dirs);
+                    } else {
+                        console.log('Restarting session...');
+                        runSession();
+                    }
+                }
+            });
+
+            if (!sock.authState.creds.registered) {
                 await delay(1500);
-                num = num.replace(/[^0-9]/g, '');
-                const code = await Smd.requestPairingCode(num);
-                if (!res.headersSent) {
-                    await res.send({ code });
+                try {
+                    let code = await sock.requestPairingCode(num);
+                    code = code?.match(/.{1,4}/g)?.join('-') || code;
+                    if (!res.headersSent) res.send({ code });
+                } catch (err) {
+                    if (!res.headersSent) res.status(503).send({ code: 'Failed to get pairing code' });
                 }
             }
 
-            Smd.ev.on('creds.update', saveCreds);
-            Smd.ev.on("connection.update", async (s) => {
-                const { connection, lastDisconnect } = s;
-
-                if (connection === "open") {
-                    try {
-                        await delay(10000);
-                        if (fs.existsSync('./auth_info_baileys/creds.json'));
-
-                        const auth_path = './auth_info_baileys/';
-                        let user = Smd.user.id;
-
-                        // Define randomMegaId function to generate random IDs
-                        function randomMegaId(length = 6, numberLength = 4) {
-                            const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-                            let result = '';
-                            for (let i = 0; i < length; i++) {
-                                result += characters.charAt(Math.floor(Math.random() * characters.length));
-                            }
-                            const number = Math.floor(Math.random() * Math.pow(10, numberLength));
-                            return `${result}${number}`;
-                        }
-
-                        // Upload credentials to Mega
-                        const mega_url = await upload(fs.createReadStream(auth_path + 'creds.json'), `${randomMegaId()}.json`);
-                        const Id_session = mega_url.replace('https://mega.nz/file/', '');
-
-                        const Scan_Id = Id_session;
-
-                        let msgsss = await Smd.sendMessage(user, { text: Scan_Id });
-                        await Smd.sendMessage(user, { text: MESSAGE }, { quoted: msgsss });
-                        await delay(1000);
-                        try { await fs.emptyDirSync(__dirname + '/auth_info_baileys'); } catch (e) {}
-
-                    } catch (e) {
-                        console.log("Error during file upload or message send: ", e);
-                    }
-
-                    await delay(100);
-                    await fs.emptyDirSync(__dirname + '/auth_info_baileys');
-                }
-
-                // Handle connection closures
-                if (connection === "close") {
-                    let reason = new Boom(lastDisconnect?.error)?.output.statusCode;
-                    if (reason === DisconnectReason.connectionClosed) {
-                        console.log("Connection closed!");
-                    } else if (reason === DisconnectReason.connectionLost) {
-                        console.log("Connection Lost from Server!");
-                    } else if (reason === DisconnectReason.restartRequired) {
-                        console.log("Restart Required, Restarting...");
-                        SUHAIL().catch(err => console.log(err));
-                    } else if (reason === DisconnectReason.timedOut) {
-                        console.log("Connection TimedOut!");
-                    } else {
-                        console.log('Connection closed with bot. Please run again.');
-                        console.log(reason);
-                        await delay(5000);
-                        exec('pm2 restart qasim');
-                    }
-                }
-            });
+            sock.ev.on('creds.update', saveCreds);
 
         } catch (err) {
-            console.log("Error in SUHAIL function: ", err);
+            console.error('Fatal error:', err);
+            await removeFile(dirs);
             exec('pm2 restart qasim');
-            console.log("Service restarted due to error");
-            SUHAIL();
-            await fs.emptyDirSync(__dirname + '/auth_info_baileys');
-            if (!res.headersSent) {
-                await res.send({ code: "Try After Few Minutes" });
-            }
+            if (!res.headersSent) res.status(503).send({ code: 'Service Unavailable' });
         }
     }
 
-    await SUHAIL();
+    await runSession();
 });
 
-module.exports = router;
-                    
+process.on('uncaughtException', err => {
+    const e = String(err);
+    const ignore = [
+        "conflict", "not-authorized", "Socket connection timeout",
+        "rate-overlimit", "Connection Closed", "Timed Out",
+        "Value not found", "Stream Errored",
+        "statusCode: 515", "statusCode: 503"
+    ];
+    if (!ignore.some(x => e.includes(x))) {
+        console.log('Caught exception:', err);
+        exec('pm2 restart qasim');
+    }
+});
+
+export default router;

@@ -1,36 +1,37 @@
 {
   "name": "web-pair",
-  "version": "0.0.2",
-  "type": "commonjs",
+  "version": "1.0.0",
+  "type": "module",
   "description": "A multi-functional WhatsApp bot Pairing Web and QR Scanner.",
   "main": "index.js",
   "engines": {
-        "node": ">=20.0.0"
+  "node": ">=20.0.0"
   },
   "scripts": {
-    "start": "pm2 start index.js --deep-monitoring --attach --name qasim",
-    "stop": "pm2 stop qasim",
-    "restart": "pm2 restart qasim",
-    "dev": "nodemon index.js"
+  "start": "pm2 start index.js --deep-monitoring --attach --name qasim",
+  "stop": "pm2 stop qasim",
+  "restart": "pm2 restart qasim",
+  "dev": "nodemon index.js"
   },
   "keywords": [
-    "baileysQr", "MdLogin", "MEGA-AI", "whatsapp-bot", "BotWhatsapp", "whatsapp-web", "whatsapp", "session", "pair-code", "express-pairing", "whatsappbot", "express-session", "whatsapp-api", "pairing", "baileys-md", "baileys-bot",
-    "whatsappLogin", "adiwajshing/baileys", "baileys-md-qr", "multi-device-qr", "whiskey sockets/baileys", "md-pair", "bot-pair", "baileysQrScanner", "botpairing", "WhatsAppPairing", "LinkDevice"
+  "baileysQr", "MdLogin", "MEGA-AI", "whatsapp-bot", "BotWhatsapp", "whatsapp-web", "whatsapp", "session", "pair-code", "express-pairing", "whatsappbot", "express-session", "whatsapp-api", "pairing", "baileys-md", "baileys-bot",
+  "whatsappLogin", "adiwajshing/baileys", "baileys-md-qr", "multi-device-qr", "whiskey sockets/baileys", "md-pair", "bot-pair", "baileysQrScanner", "botpairing", "WhatsAppPairing", "LinkDevice"
   ],
   "author": "GlobalTechInfo",
   "license": "MIT",
   "dependencies": {
-    "@hapi/boom": "^10.0.1",
-    "@whiskeysockets/baileys": "^6.7.17",
-    "awesome-phonenumber": "^2.64.0",
-    "fs-extra": "^11.3.0",
-    "megajs": "^1.3.3",
-    "pino": "^8.1.0",
-    "phone": "3.1.30",
-    "body-parser": "^1.20.1",
-    "path": "^0.12.7",
-    "express": "^4.18.1",
-    "pm2": "^5.4.2",
-    "qrcode": "^1.5.3"
+  "@hapi/boom": "^10.0.1",
+  "@whiskeysockets/baileys": "^6.7.21",
+  "awesome-phonenumber": "^7.2.0",
+  "fs-extra": "^11.3.0",
+  "megajs": "^1.3.9",
+  "pino": "^9.5.0",
+  "phone": "3.1.55",
+  "body-parser": "^1.20.3",
+  "path": "^0.12.7",
+  "express": "^4.21.2",
+  "pm2": "^5.4.2",
+  "qrcode": "^1.5.4",
+  "qrcode-terminal": "^0.12.0"
   }
 }

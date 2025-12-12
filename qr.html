@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp QR Code</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background-color: #f9f9f9;
+        }
+        h1 {
+            margin-bottom: 10px;
+        }
+        img {
+            margin: 20px 0;
+            border: 2px solid #333;
+            border-radius: 8px;
+        }
+        ol {
+            max-width: 400px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <h1>Scan WhatsApp QR Code</h1>
+    <p id="status">Loading QR code...</p>
+    <img id="qrImage" src="" alt="QR Code" />
+    <ol id="instructions"></ol>
+
+    <script>
+        async function loadQRCode() {
+            try {
+                const response = await fetch('/qr');
+                const data = await response.json();
+
+                if (data.qr) {
+                    const qrImg = document.getElementById('qrImage');
+                    qrImg.src = data.qr;
+                    const instructions = document.getElementById('instructions');
+                    instructions.innerHTML = '';
+                    data.instructions.forEach(step => {
+                        const li = document.createElement('li');
+                        li.textContent = step;
+                        instructions.appendChild(li);
+                    });
+
+                    document.getElementById('status').textContent = data.message;
+                } else {
+                    document.getElementById('status').textContent = 'Failed to load QR code';
+                }
+            } catch (err) {
+                console.error(err);
+                document.getElementById('status').textContent = 'Error fetching QR code';
+            }
+        }
+
+        loadQRCode();
+    </script>
+</body>
+</html>
