@@ -1,22 +1,22 @@
 import { Storage } from 'megajs';
 
 const auth = {
-    email: '',        // use your MEGA email
-    password: '',       // use your MEGA password
+    email: 'your mega email',       // your MEGA email
+    password: 'password',    // your MEGA password
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246'
 };
 
 export const upload = async (data, name) => {
     try {
-        if (!auth.email || !auth.password || !auth.userAgent) {
-            throw new Error("Missing required authentication fields");
+        if (!auth.email || !auth.password) {
+            throw new Error("Missing MEGA authentication info");
         }
 
-        console.log("Using auth:", auth);
+        if (typeof data === 'string') data = Buffer.from(data);
 
         const storage = await new Storage(auth).ready;
 
-        const file = await storage.upload({ name }, data).complete;
+        const file = await storage.upload({ name, allowUploadBuffering: true }, data).complete;
 
         const url = await file.link();
 
@@ -25,6 +25,7 @@ export const upload = async (data, name) => {
         return url;
 
     } catch (err) {
+        console.error("Error uploading file to MEGA:", err);
         throw err;
     }
 };
